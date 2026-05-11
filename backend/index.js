@@ -2,12 +2,14 @@ const express = require('express')
 const dotenv = require('dotenv')
 const pool = require('./db')
 const authRoutes = require('./routes/auth')
+const symptomRoutes = require('./routes/symptoms')
 
 dotenv.config()
 
 const app = express()
 app.use(express.json())
 app.use('/auth', authRoutes)
+app.use('/symptoms', symptomRoutes)
 
 app.get('/', (req, res) => {
   res.json({ message: 'MedLog API is running' })

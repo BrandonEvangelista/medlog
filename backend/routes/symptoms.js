@@ -1,0 +1,39 @@
+const express = require('express')
+const router = express.Router()
+const pool = require('../db')
+const authenticateToken = require('../middleware/auth')
+
+router.post('/', authenticateToken, async (req, res) => {
+  const { heart_rate, fatigue_level, pain_level, notes } = req.body
+  const user_id = req.user.id
+
+  try {
+    const result = await pool.query(
+      'INSERT INTO symptoms (user_id, heart_rate, fatigue_level, pain_level, notes) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [user_id, heart_rate, fatigue_level, pain_level, notes]
+    )
+
+    res.status(201).json({ symptom: result.rows[0] })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Failed to log symptom' })
+  }
+})
+
+router.get('/', authenticateToken, async (req, res) => {
+  const user_id = req.user.id
+
+  try {
+    const result = await pool.query(
+      'SELECT * FROM symptoms WHERE user_id = $1 ORDER BY logged_at DESC',
+      [user_id]
+    )
+
+    res.json({ symptoms: result.rows })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Failed to fetch symptoms' })
+  }
+})
+
+module.exports = router
