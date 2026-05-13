@@ -48,6 +48,11 @@ router.get('/:patientId', authenticateToken, async (req, res) => {
       [patientId]
     )
 
+    await pool.query(
+      'INSERT INTO audit_logs (accessed_by, patient_id, action) VALUES ($1, $2, $3)',
+      [req.user.id, patientId, 'viewed patient symptoms']
+    )
+
     res.json({ symptoms: result.rows })
   } catch (err) {
     console.error(err)
