@@ -35,5 +35,23 @@ router.get('/', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch symptoms' })
   }
 })
+router.get('/:patientId', authenticateToken, async (req, res) => {
+  if (req.user.role !== 'clinician') {
+    return res.status(403).json({ error: 'Access denied. Clinicians only.' })
+  }
 
+  const { patientId } = req.params
+
+  try {
+    const result = await pool.query(
+      'SELECT * FROM symptoms WHERE user_id = $1 ORDER BY logged_at DESC',
+      [patientId]
+    )
+
+    res.json({ symptoms: result.rows })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Failed to fetch patient symptoms' })
+  }
+})
 module.exports = router
